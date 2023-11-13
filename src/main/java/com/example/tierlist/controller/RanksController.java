@@ -67,4 +67,34 @@ public class RanksController {
                 return ResponseEntity.badRequest().body("Erreur lors de la suppression du rang");
             }
         }
+
+
+        @PutMapping(path = "/update")
+        public @ResponseBody ResponseEntity<String> updateRanks (@RequestBody Ranks params) throws Exception {
+            try {
+                Ranks myRank = ranksRepository.findById(params.getId()).get();
+
+                if (params.getLabel().isEmpty())
+                    return ResponseEntity.badRequest().body("Le label ne peut pas être vide");
+
+                myRank.setLabel(params.getLabel());
+
+                if (params.getRankIndex() == null)
+                    return ResponseEntity.badRequest().body("L'index ne peut pas être vide");
+
+                myRank.setRankIndex(params.getRankIndex());
+
+                if (params.getList() == null)
+                    return ResponseEntity.badRequest().body("La liste ne peut pas être vide");
+
+                myRank.setList(params.getList());
+
+                myRank.setListOfItem(params.getListOfItem());
+
+                ranksRepository.save(myRank);
+                return ResponseEntity.ok("Rang mis à jour");
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("Erreur lors de la création du rang");
+            }
+        }
 }

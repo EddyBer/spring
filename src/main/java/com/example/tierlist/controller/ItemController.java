@@ -49,10 +49,37 @@ public class ItemController {
         }
     }
 
+    @PutMapping(path = "/update")
+    public @ResponseBody ResponseEntity<String> updateItem(@RequestBody Item item) throws Exception {
+        try {
+            Item myItem = itemRepository.findById(item.getId()).get();
+
+            myItem.setTag(item.getTag());
+            myItem.setImage(item.getImage());
+            myItem.setLabel(item.getLabel());
+
+            if (!item.getRanksList().isEmpty())
+                myItem.setRanksList(item.getRanksList());
+
+            itemRepository.save(myItem);
+            return ResponseEntity.ok("Item modifié");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erreur lors de la modification de l'item");
+        }
+    }
 
     @GetMapping(path = "/myItems")
     public @ResponseBody Iterable<Item> getMyItems(@RequestParam User user) {
         return itemRepository.findByUser(user);
+    }
+
+    @GetMapping(path = "/item")
+    public @ResponseBody Item getItem(@RequestBody Item item) {
+        try {
+            return itemRepository.findById(item.getId()).get();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @GetMapping(path = "/allItems")

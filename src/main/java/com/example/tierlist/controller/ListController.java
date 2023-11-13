@@ -44,6 +44,7 @@ public class ListController {
     @DeleteMapping(path = "/delete")
     public @ResponseBody ResponseEntity<String> deleteList (@RequestBody List list) throws Exception {
         try {
+
             listRepository.delete(list);
             return ResponseEntity.ok("List supprimé");
         } catch (Exception e) {
