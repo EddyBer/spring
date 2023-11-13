@@ -1,5 +1,6 @@
 package com.example.tierlist.controller;
 
+import com.example.tierlist.Annotations.ValidateToken;
 import com.example.tierlist.entities.User;
 import com.example.tierlist.repository.UserRepository;
 import com.example.tierlist.auth.JwtUtil;
@@ -31,7 +32,7 @@ public class UserController {
         {
             if (encoder.matches(password, u.getPassword()))
             {
-                String token = jwtUtil.generateToken(u.getId(), u.getLogin());
+                String token = jwtUtil.generateToken(u.getId().toString());
                 return ResponseEntity.ok(token);
             }
         }
@@ -43,24 +44,24 @@ public class UserController {
         try {
             User user = new User();
             if (params.getLogin().isEmpty())
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Le login ne peut pas être vide");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Le login ne peut pas être vide");
 
             if (userRepository.findByLogin(params.getLogin()).iterator().hasNext())
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Le login est déjà utilisé");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Le login est déjà utilisé");
             user.setLogin(params.getLogin());
 
             if (params.getEmail().isEmpty())
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("L'email ne peut pas être vide");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("L'email ne peut pas être vide");
 
             if (userRepository.findByEmail(params.getEmail()).iterator().hasNext())
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("L'email est déjà utilisé");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("L'email est déjà utilisé");
             user.setEmail(params.getEmail());
 
             if (params.getPassword().isEmpty())
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Le mot de passe ne peut pas être vide");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Le mot de passe ne peut pas être vide");
 
             if (params.getPassword().length() < 8)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Le mot de passe doit contenir au moins 8 caractères");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Le mot de passe doit contenir au moins 8 caractères");
             String encodedPassword = encoder.encode(params.getPassword());
             user.setPassword(encodedPassword);
 
@@ -118,6 +119,7 @@ public class UserController {
         }
     }
 
+    @ValidateToken
     @GetMapping(path = "/users")
     public @ResponseBody Iterable<User> getAllUsers()
     {

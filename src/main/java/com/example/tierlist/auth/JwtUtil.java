@@ -1,16 +1,22 @@
 package com.example.tierlist.auth;
 
-import com.example.tierlist.entities.User;
-import io.jsonwebtoken.Claims;
+import com.example.tierlist.Annotations.ValidateToken;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.security.Key;
 import java.util.Date;
 
+@Aspect
 @Component
 public class JwtUtil {
 
@@ -20,42 +26,43 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    public String generateToken(Integer id, String login) {
+    public String getSecret() {
+        return secret;
+    }
+
+    public String generateToken(String subject) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
 
         Key key = Keys.hmacShaKeyFor(secret.getBytes());
 
         return Jwts.builder()
-                .setSubject(id.toString())
-                .setSubject(login)
+                .setSubject(subject)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, key)
                 .compact();
     }
 
-    public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(Keys.hmacShaKeyFor(secret.getBytes()))
-                .parseClaimsJws(token)
-                .getBody();
+    @Before("@annotation(validateToken)")
+    public void validateToken(JoinPoint joinPoint, ValidateToken validateToken) {
 
-        return claims.getSubject();
-    }
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
 
-    public boolean validateToken(String token) {
+            String authorizationHeader = request.getHeader("Authorization");
+
+            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+                throw new IllegalStateException("Bearer token is missing");
+            }
+
+            String token = authorizationHeader.substring(7);
         try {
-            Claims claims = Jwts.parser()
-                    .setSigningKey(Keys.hmacShaKeyFor(secret.getBytes()))
-                    .parseClaimsJws(token)
-                    .getBody();
+            Key key = Keys.hmacShaKeyFor(secret.getBytes());
 
-            // Additional validation logic if needed
-
-            return true;
+            String jwtSubject = Jwts.parser().setSigningKey(key).parseClaimsJws(token).getBody().getSubject();
+            request.setAttribute("me", jwtSubject);
         } catch (Exception e) {
-            return false;
+            throw new IllegalStateException("Token invalide");
         }
     }
 }
