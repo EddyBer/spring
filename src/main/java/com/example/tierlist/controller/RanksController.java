@@ -16,6 +16,8 @@ public class RanksController {
 
     @Autowired
     private RanksRepository ranksRepository;
+    @ValidateToken
+    @CrossOrigin(origins = "http://localhost:5173/home")
     @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<String> addRanks (@RequestBody Ranks params) throws Exception {
         try {
@@ -47,18 +49,19 @@ public class RanksController {
         @ValidateToken
         @CrossOrigin(origins = "http://localhost:5173/home")
         @GetMapping(path = "/allRanksForAList/{id}")
-        public @ResponseBody ResponseEntity<String> getAllRanksForAList(@PathVariable String listId) {
+        public @ResponseBody ResponseEntity<Iterable<Ranks>> getAllRanksForAList(@PathVariable String id) {
             try {
-                Iterable<Ranks> listOfRank = ranksRepository.findByListId(Integer.parseInt(listId));
+                Iterable<Ranks> listOfRank = ranksRepository.findByListId(Integer.parseInt(id));
 
-                if (listId == null)
-                    return ResponseEntity.badRequest().body("La liste ne peut pas être vide");
+                if (id == null)
+                    return ResponseEntity.badRequest().body(null);
 
-                return ResponseEntity.ok(listOfRank.toString());
+                return ResponseEntity.ok(listOfRank);
             } catch (Exception e) {
-                return  ResponseEntity.badRequest().body("Erruer lors de la récupération des rangs");
+                return  ResponseEntity.badRequest().body(null);
             }
         }
+
 
         @DeleteMapping(path = "/delete")
         public @ResponseBody ResponseEntity<String> deleteRanks (@RequestBody Ranks rank) throws Exception {

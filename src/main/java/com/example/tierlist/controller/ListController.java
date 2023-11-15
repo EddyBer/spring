@@ -12,6 +12,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Optional;
+
 @Controller
 @CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/list")
@@ -79,6 +81,13 @@ public class ListController {
     @PostMapping(path = "/myLists")
     public @ResponseBody Iterable<List> getMyLists(@RequestBody User user) {
         return listRepository.findByUser(user);
+    }
+
+    @ValidateToken
+    @CrossOrigin(origins = "http://localhost:5173/home")
+    @GetMapping(path = "/{id}")
+    public @ResponseBody Optional<List> getAList(@PathVariable String id) {
+        return listRepository.findById(Integer.parseInt(id));
     }
 
     @GetMapping(path = "/all")
