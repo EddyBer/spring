@@ -1,6 +1,7 @@
 package com.example.tierlist.controller;
 
 import com.example.tierlist.Annotations.ValidateToken;
+import com.example.tierlist.entities.Item;
 import com.example.tierlist.entities.Ranks;
 import com.example.tierlist.repository.RanksRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @CrossOrigin(origins = "http://localhost:5173")
@@ -72,7 +75,28 @@ public class RanksController {
                 return ResponseEntity.badRequest().body("Erreur lors de la suppression du rang");
             }
         }
+        @ValidateToken
+        @CrossOrigin(origins = "http://localhost:5173/home")
+        @PutMapping(path = "/addItems")
+        public @ResponseBody ResponseEntity<String> addItem (@RequestBody Ranks params) throws Exception {
+            try {
+                Ranks myRank = ranksRepository.findById(params.getId()).get();
 
+                if (params.getListOfItem() == null)
+                    return ResponseEntity.badRequest().body("La liste ne peut pas être vide");
+
+                List<Item> currentItems = myRank.getListOfItem();
+                System.out.println(params.getListOfItem());
+                currentItems.addAll(params.getListOfItem());
+
+                myRank.setListOfItem(currentItems);
+
+                ranksRepository.save(myRank);
+                return ResponseEntity.ok("Item ajouté");
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("Erreur lors de l'ajout de l'item");
+            }
+        }
 
         @PutMapping(path = "/update")
         public @ResponseBody ResponseEntity<String> updateRanks (@RequestBody Ranks params) throws Exception {
