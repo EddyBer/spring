@@ -7,5 +7,5 @@ public interface RanksRepository extends CrudRepository<Ranks, Integer> {
 
     Iterable<Ranks> findByList(com.example.tierlist.entities.List list);
 
-
+    Iterable<Ranks> findByListId(Integer id);
 }

@@ -1,5 +1,6 @@
 package com.example.tierlist.controller;
 
+import com.example.tierlist.Annotations.ValidateToken;
 import com.example.tierlist.entities.List;
 import com.example.tierlist.entities.Ranks;
 import com.example.tierlist.entities.User;
@@ -12,12 +13,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
 @Controller
+@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/list")
 public class ListController {
 
     @Autowired
     private ListRepository listRepository;
 
+    @ValidateToken
+    @CrossOrigin(origins = "http://localhost:5173/home")
     @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<String> addList (@RequestBody List params) throws Exception {
         try {
@@ -28,7 +32,7 @@ public class ListController {
             list.setLabel(params.getLabel());
             list.setStatut(params.getStatut());
             list.setCreationDate(params.getCreationDate());
-
+            list.setTag(params.getTag());
             if (params.getUser() == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("L'utilisateur ne peut pas être vide");
 
@@ -70,8 +74,9 @@ public class ListController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erreur lors de la modification de la liste");
         }
     }
-
-    @GetMapping(path = "/myLists")
+    @ValidateToken
+    @CrossOrigin(origins = "http://localhost:5173/home")
+    @PostMapping(path = "/myLists")
     public @ResponseBody Iterable<List> getMyLists(@RequestBody User user) {
         return listRepository.findByUser(user);
     }

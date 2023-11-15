@@ -12,6 +12,8 @@ public class List {
 
     private String label;
 
+    private String tag;
+
     private Integer statut;
 
     private Date creationDate;
@@ -56,6 +58,14 @@ public class List {
 
     public User getUser() {
         return user;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
     public void setUser(User user) {

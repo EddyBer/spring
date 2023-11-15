@@ -1,18 +1,22 @@
 package com.example.tierlist.controller;
 
 import com.example.tierlist.Annotations.ValidateToken;
+import com.example.tierlist.auth.JwtUtil;
 import com.example.tierlist.entities.User;
 import com.example.tierlist.repository.UserRepository;
-import com.example.tierlist.auth.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
+@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping(path = "/")
 public class UserController {
 
@@ -25,18 +29,22 @@ public class UserController {
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(16);
 
     @PostMapping(path = "/login")
-    public @ResponseBody ResponseEntity<String> login(@RequestParam String login, @RequestParam String password)
+    public @ResponseBody ResponseEntity<Map> login(@RequestBody User params)
     {
-        Iterable<User> user = userRepository.findByLogin(login);
+        Iterable<User> user = userRepository.findByLogin(params.getLogin());
         for (User u : user)
         {
-            if (encoder.matches(password, u.getPassword()))
+            if (encoder.matches(params.getPassword(), u.getPassword()))
             {
                 String token = jwtUtil.generateToken(u.getId().toString());
-                return ResponseEntity.ok(token);
+                HashMap<String, String> map = new HashMap<>();
+                map.put("token", token);
+                map.put("id", u.getId().toString());
+
+                return ResponseEntity.status(HttpStatus.ACCEPTED).body(map);
             }
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login ou mot de passe incorrect");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
     }
 
     @PostMapping(path = "/signing", consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -76,8 +84,9 @@ public class UserController {
             throw new Exception("Erreur lors de la création de l'utilisateur");
         }
     }
-
-    @PutMapping(path = "/updateMyProfile")
+    @ValidateToken
+    @CrossOrigin(origins = "http://localhost:5173/profile")
+    @PutMapping(path = "/user/updateMyProfile")
     public @ResponseBody ResponseEntity<String> updateUser (@RequestBody User user) throws Exception {
         try {
             User myUser = userRepository.findById(user.getId()).get();
@@ -98,15 +107,6 @@ public class UserController {
             else
                 myUser.setEmail(user.getEmail());
 
-            if (user.getPassword().isEmpty())
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Le mot de passe ne peut pas être vide");
-
-            if (user.getPassword().length() < 8)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Le mot de passe doit contenir au moins 8 caractères");
-
-            String encodedPassword = encoder.encode(user.getPassword());
-            myUser.setPassword(encodedPassword);
-
             myUser.setName(user.getName());
             myUser.setFirstname(user.getFirstname());
             myUser.setBirthdate(user.getBirthdate());
@@ -124,5 +124,17 @@ public class UserController {
     public @ResponseBody Iterable<User> getAllUsers()
     {
         return userRepository.findAll();
+    }
+
+    @ValidateToken
+    @CrossOrigin(origins = "http://localhost:5173/profile")
+    @GetMapping(path = "/user")
+    public @ResponseBody User getUser(@RequestParam Integer id)
+    {
+        try {
+            return userRepository.findById(id).get();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

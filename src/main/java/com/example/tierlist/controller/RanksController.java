@@ -1,6 +1,6 @@
 package com.example.tierlist.controller;
 
-import com.example.tierlist.entities.List;
+import com.example.tierlist.Annotations.ValidateToken;
 import com.example.tierlist.entities.Ranks;
 import com.example.tierlist.repository.RanksRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
+@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/ranks")
 public class RanksController {
 
@@ -43,13 +44,14 @@ public class RanksController {
             return ResponseEntity.badRequest().body("Erreur lors de la création du rang");
         }
     }
-
-        @GetMapping(path = "/allRanksForAList")
-        public @ResponseBody ResponseEntity<String> getAllRanksForAList(@RequestParam List list) {
+        @ValidateToken
+        @CrossOrigin(origins = "http://localhost:5173/home")
+        @GetMapping(path = "/allRanksForAList/{id}")
+        public @ResponseBody ResponseEntity<String> getAllRanksForAList(@PathVariable String listId) {
             try {
-                Iterable<Ranks> listOfRank = ranksRepository.findByList(list);
+                Iterable<Ranks> listOfRank = ranksRepository.findByListId(Integer.parseInt(listId));
 
-                if (list == null)
+                if (listId == null)
                     return ResponseEntity.badRequest().body("La liste ne peut pas être vide");
 
                 return ResponseEntity.ok(listOfRank.toString());

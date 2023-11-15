@@ -11,7 +11,7 @@ public class Item {
     private Integer id;
 
     private String label;
-
+    @Column(columnDefinition="LONGTEXT")
     private String image;
 
     private String tag;
