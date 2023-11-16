@@ -109,6 +109,25 @@ public class RanksController {
             }
         }
 
+    @ValidateToken
+    @CrossOrigin(origins = "http://localhost:5173/home")
+    @PutMapping(path = "/deleteItem/{id}")
+    public @ResponseBody ResponseEntity<String> deleteItem (@PathVariable String id,@RequestBody Item params) throws Exception {
+        try {
+            Ranks myRank = ranksRepository.findById(Integer.parseInt(id)).get();
+
+            if (params.getId() == null)
+                return ResponseEntity.badRequest().body("Il faut obligatoirement un item");
+
+            myRank.getListOfItem().remove(params);
+
+            ranksRepository.save(myRank);
+            return ResponseEntity.ok("Item ajouté");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erreur lors de l'ajout de l'item");
+        }
+    }
+
         @PutMapping(path = "/update")
         public @ResponseBody ResponseEntity<String> updateRanks (@RequestBody Ranks params) throws Exception {
             try {
