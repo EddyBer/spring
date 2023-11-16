@@ -115,4 +115,34 @@ public class ListController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erreur lors de la modification des rangs");
         }
     }
+
+    @ValidateToken
+    @CrossOrigin(origins = "http://localhost:5173/home")
+    @PutMapping(path = "/validate/{id}")
+    public @ResponseBody ResponseEntity<String> validateList (@PathVariable String id, @RequestBody List params) throws Exception {
+        try {
+            List myList = listRepository.findById(Integer.parseInt(id)).get();
+            myList.setStatut(params.getStatut());
+
+            listRepository.save(myList);
+            return ResponseEntity.ok("List validé");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erreur lors de la validation du rang");
+        }
+    }
+
+    @ValidateToken
+    @CrossOrigin(origins = "http://localhost:5173/home")
+    @DeleteMapping(path = "/deleteRanks/{id}")
+    public @ResponseBody ResponseEntity<String> deleteRanks (@PathVariable String id) throws Exception {
+        try {
+            List myList = listRepository.findById(Integer.parseInt(id)).get();
+            myList.getListOfRanks().removeAll(myList.getListOfRanks());
+
+            listRepository.save(myList);
+            return ResponseEntity.ok("Rang supprimé");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erreur lors de la suppression du rang");
+        }
+    }
 }

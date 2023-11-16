@@ -65,6 +65,17 @@ public class RanksController {
             }
         }
 
+        @ValidateToken
+        @CrossOrigin(origins = "http://localhost:5173/home")
+        @DeleteMapping(path = "/delete/{id}")
+        public @ResponseBody ResponseEntity<String> deleteRanks (@PathVariable String id) throws Exception {
+            try {
+                ranksRepository.deleteById(Integer.parseInt(id));
+                return ResponseEntity.ok("Rang supprimé");
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("Erreur lors de la suppression du rang");
+            }
+        }
 
         @DeleteMapping(path = "/delete")
         public @ResponseBody ResponseEntity<String> deleteRanks (@RequestBody Ranks rank) throws Exception {
